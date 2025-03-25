@@ -9,7 +9,7 @@ Poniżej zostają zamieszczone zdjęcia kodu zawierające cały main.
 ## Funkcje
 ### - opis tekstowy
 Program dzieli się na kilka ważnych podfunkcji. Są to:
- -load_from_file - jest to funkcja czytająca graf z pliku tekstowego. Funkcja ta przyjmuje wskaźnik do podanego przez użytkownika pliku. Zostały tutaj użyte struktury graph_t oraz node_t w celu poprawienia przejrzystości kodu. Funkcja zwraca obiekt typu graph_t, na podstawie którego będzie można później np wypisać graf na konsolę.
+#-load_from_file - jest to funkcja czytająca graf z pliku tekstowego. Funkcja ta przyjmuje wskaźnik do podanego przez użytkownika pliku. Zostały tutaj użyte struktury graph_t oraz node_t w celu poprawienia przejrzystości kodu. Funkcja zwraca obiekt typu graph_t, na podstawie którego będzie można później np wypisać graf na konsolę.
  -partition_graph - funkcja dzieląca graf na zadaną liczbę części. Funkcja ptzyjmuje następujące argumenty: wskaźnik do obiektu, liczbę części do podziału (typ int) oraz margines błędu (liczba typu double). Funkcja zwraca obiekt typu graph_t.
  -print_graph - funkcja wypisująca graf na konsolę. Funkcja przyjmuje wskaźnik do obiektu typu graph_t i wyświetla go w terminalu w postaci macierzy oraz listy wszystkich połączeń. Macierz zawiera tylko numery węzłów i ich pozycję.
 ### - struktury
