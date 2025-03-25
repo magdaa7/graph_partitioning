@@ -15,7 +15,7 @@ Program dzieli się na kilka ważnych podfunkcji. Są to:
 ### - struktury
 W programie zostały zdefiniowane dwie struktury: node_t oraz graph_t. W skład pierwszej struktury składa się liczba całkowita Number (liczba porządkowa węzła) i tablica Connections (przechowuje połączenia danego wezła). Struktura graph_t zawiera pola Height (wysokość grafu), Width (szerokość grafu), tablicę Nodes (przechowuje listę wszystkich węzłów w grafie) oraz tablicę NodeIndexes (lista indeksów kolejnych węzłów).
 ### - pseudokod
-Poniżej zostają zamieszczone zdjęcia kodu przedstawiające funkcje z programu.
+Poniżej zostają zamieszczone zdjęcia kodu przedstawiające funkcje oraz struktury programu.
 ## Dodatkowo
 ### - screenshoty z konsoli
 ## Podsumowanie
