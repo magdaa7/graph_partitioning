@@ -564,11 +564,14 @@ int main (int argc, char **argv) { //in, k, margines, typ
     } else if (argc == 2) {
         file = argv[1];
     } else if (argc == 3) {
+        file = argv[1];
         k = atoi(argv[2]);
     } else if (argc == 4) {
+        file = argv[1];
         k = atoi(argv[2]);
         ErrorMargin = atof(argv[3]);
     } else if (argc == 5) {
+        file = argv[1];
         k = atoi(argv[2]);
         ErrorMargin = atof(argv[3]);
         if (argv[4] == "t") {
