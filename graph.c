@@ -106,7 +106,6 @@ void print_graph (graph_t *Graph) {
 }
 
 // funkcja czytająca graf z pliku
-
 graph_t *load_from_file (FILE *Stream) {
 
     if (Stream == NULL) {
@@ -241,7 +240,6 @@ graph_t *load_from_file (FILE *Stream) {
 }
 
 // macierz sąsiedztwa
-
 typedef struct adj_mtx {
 
     int Size;
@@ -353,20 +351,15 @@ void Dijkstra (graph_t *Graph, int StartingNode, int NodeDistancesIndex) {
     free(GraphAdjacencyMatrix);
 }
 
-// algorytm dzielący graf
-graph_t **partition_graph (graph_t *Graph, int PartitionCount, double ErrorMargin) {
-
-    return NULL;
-}
-
 // zapis do pliku tekstowego
-void write_to_txt(graph_t *Graph){//, char *name){
+void write_to_txt(graph_t *Graph){//, char *name, int k){
     FILE *out = fopen("res.txt", "w");
     if (out == NULL){
         printf("Can't access the file!\n");
         return;
     }
     //fprintf(out, "%s\n", name);                        // DOPISAC POZOSTALE ARGS
+    //fprintf(out, "%d\n", k);
     int Index = 0;
     for (int i=0; i<Graph->Height; i++){
         fprintf(out, "[");
@@ -401,7 +394,7 @@ int d (graph_t *Graph, int i, int j){
 }
 
 //zapis do pliku binarnego 
-void write_to_bin(graph_t *Graph){
+void write_to_bin(graph_t *Graph){ 
     int Index = 0;
     char minus = '-';
     char one = '1';
@@ -471,16 +464,8 @@ void write_to_bin(graph_t *Graph){
     printf("zapisano bin");
 }
 
-
-
 // sprawdza czy tablica zawiera dany element
-int contains(int *list, int n, int elem){
-    for (int i = 0; i < n; i++){
-        if (elem == list[i]) return 1;
-    }
-    return 0;
-}
-int czy_zawiera (int **miniGraphs, int subgraph, int nodesCounter, int elem, int index) {
+int contains (int **miniGraphs, int subgraph, int nodesCounter, int elem, int index, int *assigned) {
     int ile = 0;
     for (int j = 0; j < subgraph; j++){
         for (int m = 0; m < nodesCounter; m++){
@@ -491,164 +476,138 @@ int czy_zawiera (int **miniGraphs, int subgraph, int nodesCounter, int elem, int
     }
     if (ile == subgraph*nodesCounter){
         miniGraphs[subgraph][index] = elem;
+        assigned[elem] = 1;
         return 0;
     }
     return 1;
 }
 
-int dist(graph_t *NewGraph, int d, int n){ //liczy ile jest wezlow z danym dystansem
-    int distanceSum = 0;
-    for (int i = 0; i < n; i++){
-        if (NewGraph->Nodes[i].Distances[0] == d) distanceSum++;
+void free_minigraphs(int **miniGraphs, int *assigned, int k){
+    for (int i = 0; i < k; i++){
+        free(miniGraphs[i]);
     }
-    return distanceSum;
-}
-int ddd(graph_t *NewGraph, int n, int *list_asg, int dist){//liczy ile jest przydzielonych wezlow z danym dystansem
-    int ile_dystanow = 0;
-    for (int i = 0; i < n; i++){
-        if (NewGraph->Nodes[i].Distances[0] == dist && list_asg[i] == 1) {
-            ile_dystanow++;
-        }
-    }
-    return ile_dystanow;
+    free(miniGraphs);
+    free(assigned);
 }
 
 
+// algorytm dzielący graf
+void **partition_graph (graph_t *NewGraph, int k, double ErrorMargin, int **miniGraphs, int *assigned) {
+    if (ErrorMargin <= 0.0 || ErrorMargin > 0.5) {
+        printf("Wrong Error Margin!");
+        return NULL;
+    }
 
-// TODO LIST
-
-// main - na później
-// zwiększyć liczby w czytaniu z pliku - Szymon
-
-int main (int argc, char **argv) {
-    //FILE *Stream = fopen("graf.csrrg", "r+");
-    FILE *Stream = fopen("przyklad.csrrg", "r+");
-
-    graph_t *NewGraph = malloc(sizeof(graph_t));
-    NewGraph = load_from_file(Stream);  
-    fclose(Stream);
-    //print_graph(NewGraph);
-
-
-
-    int k = 5; //przykladowa liczba czesci do podzialu              przyklad - 2,3,4 (dla 5 ucina) + graf - 2,3
-    int **miniGraphs = malloc(k * sizeof(int*));
     int nodesCounter = how_many_nodes(NewGraph)/k; //liczba wierzcholkow w jednym podgrafie
 
-    for (int i = 0; i < k; i++){
-        miniGraphs[i] = malloc(nodesCounter * sizeof(int));
+    if (how_many_nodes(NewGraph) % k != 0){
+        nodesCounter++;
     }
-
-    int *assigned = calloc(how_many_nodes(NewGraph), sizeof(int)); //0 - nieprzydzielony, 1 - przydzielony
 
     int distance = 0; 
     int subgraph = 0; //numer podgrafu
     int index = 0; //index w tablicy podgrafu
     Dijkstra(NewGraph, 0, 0);
 
-    /*while (subgraph < k-1){
-        index = 0;
-        while (index < nodesCounter){
-            for (int i = 0; i < how_many_nodes(NewGraph); i++){
-                if (NewGraph->Nodes[i].Distances[0] == distance){
-                    for (int j = 0; j < subgraph+1; j++){
-                        if (!contains(miniGraphs[j], nodesCounter, NewGraph->Nodes[i].Number)) {
-                            miniGraphs[subgraph][index] = NewGraph->Nodes[i].Number;
-                            index++;
-                        }
-                    }
-                }
-                if (i == (how_many_nodes(NewGraph)-1)) {
-                    distance++;
-                }
-            }
-        }
-        subgraph++;
-    }*/
-
     while (subgraph < k-1){
         index = 0;
+        distance = 0;
         while (index < nodesCounter){
+            int added = 0;
             for (int i = 0; i < how_many_nodes(NewGraph); i++){
                 if (NewGraph->Nodes[i].Distances[0] == distance && assigned[i] == 0){
                     miniGraphs[subgraph][index] = NewGraph->Nodes[i].Number;
-                    index++;
                     assigned[i] = 1;
+                    index++;
+                    added = 1;
                 }
-                if (i == (how_many_nodes(NewGraph)-1)) {
-                //if (dist(NewGraph, distance, how_many_nodes(NewGraph)) == ddd(NewGraph, how_many_nodes(NewGraph), assigned, distance)){
-                    distance++;
-                }
+                if (index >= nodesCounter) break;
             }
+            if (!added) distance++; // jeżeli nie udało się dodać
         }
         subgraph++;
     }
-    
-
-    /*int ile = 0;
-    index = 0;
-    for (int i = 0; i < how_many_nodes(NewGraph); i++){ //ostatni graf to zlepek pozostalych wezlow
-        ile = 0;
-        for (int j = 0; j < subgraph; j++){
-            for (int m = 0; m < nodesCounter; m++){
-                if (miniGraphs[j][m] != i){
-                    ile++;
-                }
-            }
-        }
-        if (ile == subgraph*nodesCounter){
-            miniGraphs[subgraph][index] = i;
-            index++;
-        }
-    }*/
 
     index = 0;
     for (int i = 0; i < how_many_nodes(NewGraph); i++){ //ostatni graf to zlepek pozostalych wezlow
-        if (!czy_zawiera(miniGraphs, subgraph, nodesCounter, NewGraph->Nodes[i].Number, index)){
+        if (!contains(miniGraphs, subgraph, nodesCounter, NewGraph->Nodes[i].Number, index, assigned)){
             index++;
         }
     }
-
-    /*index = 0;
-    for (int i = 0; i < how_many_nodes(NewGraph); i++){
-        if (assigned[i] == 0) {
-            miniGraphs[subgraph][index] = NewGraph->Nodes[i].Number;
-            index++;
-        }
-    }*/
-
     for (int i = 0; i < k; i++){
         printf("Podgraf%d: ", i);
         for (int j = 0; j < nodesCounter; j++){
-            printf("%d ", miniGraphs[i][j]);
+            if (miniGraphs[i][j] >= how_many_nodes(NewGraph) || miniGraphs[i][j] < 0){
+                printf("");
+            } else {
+                printf("%d ", miniGraphs[i][j]);
+            }
         }
         printf("\n");
     }
+}
 
+// TODO LIST
+
+// zwiększyć liczby w czytaniu z pliku - Szymon
+
+int main (int argc, char **argv) { //in, k, margines, typ
+    
+    int k = 2; //przykladowa liczba czesci do podzialu  przyklad - 2,3,4 graf - 5, 9, 18, 35
+    double ErrorMargin = 0.1;
+    char *file = "przyklad.csrrg";
+    int type = 0;
+
+    if (argc == 1){
+        printf("Too few arguments!\n");
+        return 1;
+    } else if (argc == 2) {
+        file = argv[1];
+    } else if (argc == 3) {
+        k = atoi(argv[2]);
+    } else if (argc == 4) {
+        k = atoi(argv[2]);
+        ErrorMargin = atof(argv[3]);
+    } else if (argc == 5) {
+        k = atoi(argv[2]);
+        ErrorMargin = atof(argv[3]);
+        if (argv[4] == "t") {
+            type = 1;
+        } else if (argv[4] == "b"){
+            type = 2;
+        } else {
+            printf("Wrong type\n");
+            return 3;
+        }
+    } else {
+        printf("Incorrect arguments!\n");
+        return 2;
+    }
+
+    FILE *Stream = fopen(file, "r+");
+    graph_t *NewGraph = malloc(sizeof(graph_t));
+    NewGraph = load_from_file(Stream);  
+    fclose(Stream);
+    print_graph(NewGraph);
+    if (k <= 0 || k > how_many_nodes(NewGraph)/2) {
+        printf("Wrong number of parts\n");
+    }
+
+    if (type == 1){
+        write_to_txt(NewGraph);
+    } else if (type == 2) {
+        write_to_bin(NewGraph);
+    } 
+
+    int **miniGraphs = malloc(k * sizeof(int*));
     for (int i = 0; i < k; i++){
-        free(miniGraphs[i]);
+        miniGraphs[i] = malloc((how_many_nodes(NewGraph)/k) * sizeof(int));
     }
-    free(miniGraphs);
+    int *assigned = calloc(how_many_nodes(NewGraph), sizeof(int)); //0 - nieprzydzielony, 1 - przydzielony
 
+    partition_graph(NewGraph, k, ErrorMargin, miniGraphs, assigned);
 
-
-
-    /*adj_mtx_t *TestAdjMtx = generate_adj_mtx (NewGraph);
-    print_adj_mtx(TestAdjMtx);
-
-    Dijkstra(NewGraph, 0, 0);
-
-    //test
-    for (int i = 0; i < 12; i++) {
-        printf("%d dist %d\n", NewGraph->Nodes[i].Number, NewGraph->Nodes[i].Distances[0]);
-    }
-    free(TestAdjMtx->Adjacencies);
-    free(TestAdjMtx);
-    */
-
-    //write_to_txt(NewGraph);
-    //write_to_bin(NewGraph);
-
+    free_minigraphs(miniGraphs, assigned, k);
     free_graph(NewGraph);
     return 0;
 }
