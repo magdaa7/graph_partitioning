@@ -401,7 +401,6 @@ void write_to_bin(graph_t *Graph){
     char zero = '0';
     char dot = '.';
     char n = '\n';
-    //char spr;
 
     FILE *out = fopen("res.bin", "wb+");
     if (out == NULL){
@@ -411,55 +410,30 @@ void write_to_bin(graph_t *Graph){
     for (int i = 0; i<Graph->Height; i++){
         for (int j = 0; j<Graph->Width; j++){
             if (Graph->NodeIndexes[Index] == (i*Graph->Width)+j){
-                fwrite(&one, sizeof(int), 1, out);
+                fwrite(&one, sizeof(char), 1, out);
                 Index++;
             } else {
-                fwrite(&zero, sizeof(int), 1, out);
+                fwrite(&zero, sizeof(char), 1, out);
             }
-            fwrite(&dot, sizeof(int), 1, out);
+            fwrite(&dot, sizeof(char), 1, out);
         }
-        fwrite(&n, sizeof(int), 1, out);
+        fwrite(&n, sizeof(char), 1, out);
     }
 
     char tmp;
+    char buffer[12];
     for (int i = 0; i < 105; i++) {
         int j = 0;
         while(d(Graph, i, j)) {
-            tmp = (char)Graph->Nodes[i].Number;
-            fwrite(&tmp, sizeof(int), 1, out);
-            fwrite(&minus, sizeof(int), 1, out);
-            tmp = (char)Graph->Nodes[i].Connections[j]->Number;
-            fwrite(&tmp, sizeof(int), 1, out);
-            fwrite(&n, sizeof(int), 1, out);
+            sprintf(buffer, "%d", Graph->Nodes[i].Number);
+            fwrite(buffer, sizeof(char), strlen(buffer), out);
+            fwrite(&minus, sizeof(char), 1, out);
+            sprintf(buffer, "%d", Graph->Nodes[i].Connections[j]->Number);
+            fwrite(buffer, sizeof(char), strlen(buffer), out);
+            fwrite(&n, sizeof(char), 1, out);
             j++;
         }
     }
-    /*fseek(out, 0, SEEK_SET);
-    for (int i = 0; i<Graph->Height; i++){
-        for (int j = 0; j<Graph->Width; j++){
-            fread(&spr, sizeof(int), 1, out);
-            printf("%c", spr);
-            fread(&spr, sizeof(int), 1, out);
-            printf("%c", spr);
-        }
-        fread(&spr, sizeof(int), 1, out);
-        printf("%c", spr);
-    }
-
-    for (int i = 0; i < 105; i++) {
-        int j = 0;
-        while(d(Graph, i, j)) {
-            fread(&spr, sizeof(int), 1, out);
-            printf("%d", spr);
-            fread(&spr, sizeof(int), 1, out);
-            printf("%c", spr);
-            fread(&spr, sizeof(int), 1, out);
-            printf("%d", spr);
-            fread(&spr, sizeof(int), 1, out);
-            printf("%c", spr);
-            j++;
-        }
-    }*/
     fclose(out);
     printf("zapisano bin");
 }
@@ -547,13 +521,10 @@ void **partition_graph (graph_t *NewGraph, int k, double ErrorMargin, int **mini
     }
 }
 
-// TODO LIST
-
-// zwiększyć liczby w czytaniu z pliku - Szymon
 
 int main (int argc, char **argv) { //in, k, margines, typ
     
-    int k = 2; //przykladowa liczba czesci do podzialu  przyklad - 2,3,4 graf - 5, 9, 18, 35
+    int k = 2; //przykladowa liczba czesci do podzialu  przyklad - 2,3,4; graf - 5,9,18,35
     double ErrorMargin = 0.1;
     char *file = "przyklad.csrrg";
     int type = 0;
@@ -576,11 +547,12 @@ int main (int argc, char **argv) { //in, k, margines, typ
         ErrorMargin = atof(argv[3]);
         if (argv[4] == "t") {
             type = 1;
-        } else if (argv[4] == "b"){
+        } else if (argv[4] == "s"){
             type = 2;
         } else {
             printf("Wrong type\n");
-            return 3;
+            type = 2;
+            //return 3;
         }
     } else {
         printf("Incorrect arguments!\n");
